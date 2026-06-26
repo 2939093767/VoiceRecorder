@@ -1,0 +1,295 @@
+/* VoiceRecorder 全局样式表 */
+
+QMainWindow {
+    background-color: #f8f9fa;
+}
+
+/* 左侧面板 */
+QWidget#leftPanel {
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
+}
+
+/* 右侧面板 */
+QWidget#rightPanel {
+    background-color: #f8f9fa;
+}
+
+/* 应用标题 */
+QLabel#appTitleLabel {
+    padding: 0px;
+}
+
+/* 历史记录列表 */
+QLabel#historyLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: #7f8c8d;
+    padding-top: 8px;
+}
+
+/* 主按钮样式（新建、保存） */
+QPushButton#primaryBtn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 20px;
+}
+
+QPushButton#primaryBtn:hover {
+    background-color: #2980b9;
+}
+
+QPushButton#primaryBtn:pressed {
+    background-color: #1f6aa5;
+}
+
+/* 次要按钮样式（删除） */
+QPushButton {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: 1px solid #dcdfe6;
+    background-color: #ffffff;
+    color: #606266;
+}
+
+QPushButton:hover {
+    color: #3498db;
+    border-color: #93c9f0;
+    background-color: #ecf5ff;
+}
+
+QPushButton:pressed {
+    color: #2980b9;
+    border-color: #2980b9;
+    background-color: #d6eaff;
+}
+
+/* 标题标签 */
+QLabel#titleLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* 内容标签 */
+QLabel#contentLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* 备注标签 */
+QLabel#notesLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+/* 标题输入框 */
+QLineEdit#titleEdit {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 2px solid #bdc3c7;
+    background: transparent;
+}
+
+QLineEdit#titleEdit:focus {
+    border-bottom-color: #3498db;
+}
+
+QLineEdit#titleEdit::placeholder {
+    color: #bdc3c7;
+    font-weight: normal;
+}
+
+/* 文本编辑区（内容） */
+QTextEdit#contentEdit {
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    background-color: white;
+    line-height: 1.6;
+}
+
+QTextEdit#contentEdit:focus {
+    border-color: #3498db;
+}
+
+/* 文本编辑区（备注） */
+QTextEdit#notesEdit {
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    background-color: white;
+    line-height: 1.6;
+}
+
+QTextEdit#notesEdit:focus {
+    border-color: #3498db;
+}
+
+/* 历史记录列表 */
+QListWidget#historyList {
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 4px;
+    background-color: #fafafa;
+    outline: none;
+}
+
+QListWidget#historyList::item {
+    padding: 10px 12px;
+    margin: 2px;
+    border-radius: 6px;
+    color: #333;
+}
+
+QListWidget#historyList::item:hover {
+    background-color: #ecf5ff;
+}
+
+QListWidget#historyList::item:selected {
+    background-color: #3498db;
+    color: white;
+}
+
+/* 分组框 */
+QGroupBox {
+    font-weight: 600;
+    font-size: 14px;
+    color: #34495e;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin-top: 12px;
+    padding-top: 16px;
+    background-color: white;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 16px;
+    padding: 0 8px 0 8px;
+    color: #2c3e50;
+}
+
+/* 录音按钮 */
+QPushButton#recordBtn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 26px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton#recordBtn:hover {
+    background-color: #c0392b;
+}
+
+QPushButton#recordBtn:pressed {
+    background-color: #a93226;
+}
+
+/* 录音按钮 - 录音中状态 */
+QPushButton#recordBtnRecording {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 26px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton#recordBtnRecording:hover {
+    background-color: #229954;
+}
+
+QPushButton#recordBtnRecording:pressed {
+    background-color: #1e8449;
+}
+
+/* 时长显示 */
+QLabel#durationLabel {
+    font-size: 32px;
+    font-weight: bold;
+    font-family: 'Segoe UI', Consolas, monospace;
+    color: #2c3e50;
+}
+
+/* 状态显示 */
+QLabel#statusLabel {
+    color: #7f8c8d;
+    font-size: 13px;
+}
+
+/* 音量条 */
+QProgressBar#levelBar {
+    border: none;
+    border-radius: 4px;
+    background-color: #ecf0f1;
+    height: 8px;
+}
+
+QProgressBar#levelBar::chunk {
+    background-color: #e74c3c;
+    border-radius: 4px;
+}
+
+/* 状态栏 */
+QStatusBar {
+    background-color: #ffffff;
+    border-top: 1px solid #e0e0e0;
+    color: #666;
+}
+
+/* 滚动条样式 */
+QScrollBar:vertical {
+    width: 8px;
+    background: transparent;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #bdc3c7;
+    border-radius: 4px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #95a5a6;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar:horizontal {
+    height: 8px;
+    background: transparent;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: #bdc3c7;
+    border-radius: 4px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #95a5a6;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0;
+}
