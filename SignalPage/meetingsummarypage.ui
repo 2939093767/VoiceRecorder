@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MeetingSummaryPage</class>
+ <widget class="QWidget" name="MeetingSummaryPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>会议总结</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>24</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+  <property name="bottomMargin">
+    <number>24</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="titleLayout">
+     <item>
+      <widget class="QLabel" name="pageTitleLabel">
+       <property name="text">
+        <string>会议总结</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-size: 20px; font-weight: bold; color: #ffffff;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="titleSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="generateBtn">
+       <property name="text">
+        <string>生成总结</string>
+       </property>
+       <property name="objectName">
+        <string notr="true">primaryBtn</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copyBtn">
+       <property name="text">
+        <string>复制</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clearBtn">
+       <property name="text">
+        <string>清空</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QFrame" name="configFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <layout class="QHBoxLayout" name="configLayout">
+      <property name="leftMargin">
+       <number>16</number>
+      </property>
+      <property name="topMargin">
+       <number>12</number>
+      </property>
+      <property name="rightMargin">
+       <number>16</number>
+      </property>
+      <property name="bottomMargin">
+       <number>12</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="apiKeyLabel">
+        <property name="text">
+         <string>API Key:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="apiKeyEdit">
+        <property name="placeholderText">
+         <string>请输入火山方舟 API Key</string>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="modelLabel">
+        <property name="text">
+         <string>模型:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="modelCombo">
+        <property name="minimumSize">
+         <size>
+          <width>180</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="saveConfigBtn">
+        <property name="text">
+         <string>保存配置</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="divider1">
+     <property name="frameShape">
+      <enum>QFrame::HLine</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="contentLayout">
+     <item>
+      <widget class="QWidget" name="sourcePanel" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <layout class="QVBoxLayout" name="sourceLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>12</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="sourceTitle">
+          <property name="text">
+           <string>源会议记录</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font-size: 13px; font-weight: 600; color: #c5c5c5;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="sourceTitleLabel">
+          <property name="text">
+           <string>无标题</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font-size: 12px; color: #808080; padding: 4px 0;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="sourceContentEdit">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QFrame" name="divider2">
+       <property name="minimumSize">
+        <size>
+         <width>1</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::VLine</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="summaryLayout">
+       <item>
+        <widget class="QLabel" name="summaryTitle">
+         <property name="text">
+          <string>会议总结</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 13px; font-weight: 600; color: #c5c5c5;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="summaryEdit">
+         <property name="placeholderText">
+          <string>点击"生成总结"按钮自动生成...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="keyPointsTitle">
+         <property name="text">
+          <string>关键要点</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 13px; font-weight: 600; color: #c5c5c5; padding-top: 12px;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="keyPointsEdit">
+         <property name="placeholderText">
+          <string>点击"生成总结"按钮自动提取...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="actionItemsTitle">
+         <property name="text">
+          <string>行动项</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 13px; font-weight: 600; color: #c5c5c5; padding-top: 12px;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="actionItemsEdit">
+         <property name="placeholderText">
+          <string>点击"生成总结"按钮自动生成...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+</ui>

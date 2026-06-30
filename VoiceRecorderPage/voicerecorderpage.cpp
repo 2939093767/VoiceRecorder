@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "voicerecorderpage.h"
+#include "ui_voicerecorderpage.h"
 #include "audiorecorder.h"
 #include "speechrecognizer.h"
 
@@ -17,18 +17,20 @@
 #include <QTextCursor>
 #include <QFile>
 #include <QApplication>
+#include <QSignalBlocker>
+#include <QColor>
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+VoiceRecorderPage::VoiceRecorderPage(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::VoiceRecorderPage)
     , m_audioRecorder(new AudioRecorder(this))
     , m_speechRecognizer(new SpeechRecognizer(this))
     , m_currentRecordId()
     , m_hypothesisText()
     , m_hasUnsavedChanges(false)
+    , m_searchKeyword()
 {
     ui->setupUi(this);
-    loadStyleSheet();
     setupConnections();
     loadRecords();
     if (!m_records.isEmpty()) {
@@ -39,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 }
 
-MainWindow::~MainWindow()
+VoiceRecorderPage::~VoiceRecorderPage()
 {
     if (m_audioRecorder->isRecording()) {
         m_audioRecorder->stopRecording();
@@ -52,24 +54,53 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setupConnections()
+RecordItem VoiceRecorderPage::currentRecord() const
 {
-    connect(ui->recordBtn, &QPushButton::clicked, this, &MainWindow::onRecordBtnClicked);
-    connect(ui->saveBtn, &QPushButton::clicked, this, &MainWindow::onSaveBtnClicked);
-    connect(ui->newBtn, &QPushButton::clicked, this, &MainWindow::onNewBtnClicked);
-    connect(ui->deleteBtn, &QPushButton::clicked, this, &MainWindow::onDeleteBtnClicked);
-    connect(ui->historyList, &QListWidget::currentRowChanged, this, &MainWindow::onHistoryItemClicked);
+    for (const RecordItem &record : m_records) {
+        if (record.id == m_currentRecordId) {
+            return record;
+        }
+    }
+    return RecordItem();
+}
 
-    connect(m_audioRecorder, &AudioRecorder::recordingStarted, this, &MainWindow::onRecordingStarted);
-    connect(m_audioRecorder, &AudioRecorder::recordingStopped, this, &MainWindow::onRecordingStopped);
-    connect(m_audioRecorder, &AudioRecorder::levelChanged, this, &MainWindow::onLevelChanged);
-    connect(m_audioRecorder, &AudioRecorder::errorOccurred, this, &MainWindow::onAudioError);
+QList<RecordItem> VoiceRecorderPage::selectedRecords() const
+{
+    QList<RecordItem> result;
+    QList<QListWidgetItem *> items = ui->historyList->selectedItems();
+    for (QListWidgetItem *item : items) {
+        QString id = item->data(Qt::UserRole).toString();
+        for (const RecordItem &record : m_records) {
+            if (record.id == id) {
+                result.append(record);
+                break;
+            }
+        }
+    }
+    return result;
+}
 
-    connect(m_speechRecognizer, &SpeechRecognizer::recognitionResult, this, &MainWindow::onRecognitionResult);
-    connect(m_speechRecognizer, &SpeechRecognizer::hypothesisResult, this, &MainWindow::onHypothesisResult);
-    connect(m_speechRecognizer, &SpeechRecognizer::listeningStarted, this, &MainWindow::onListeningStarted);
-    connect(m_speechRecognizer, &SpeechRecognizer::listeningStopped, this, &MainWindow::onListeningStopped);
-    connect(m_speechRecognizer, &SpeechRecognizer::errorOccurred, this, &MainWindow::onSpeechError);
+void VoiceRecorderPage::setupConnections()
+{
+    connect(ui->recordBtn, &QPushButton::clicked, this, &VoiceRecorderPage::onRecordBtnClicked);
+    //connect(ui->saveBtn, &QPushButton::clicked, this, &VoiceRecorderPage::onSaveBtnClicked);
+    connect(ui->newBtn, &QPushButton::clicked, this, &VoiceRecorderPage::onNewBtnClicked);
+    connect(ui->deleteBtn, &QPushButton::clicked, this, &VoiceRecorderPage::onDeleteBtnClicked);
+    connect(ui->summaryBtn, &QPushButton::clicked, this, &VoiceRecorderPage::onSummaryBtnClicked);
+    connect(ui->historyList, &QListWidget::currentRowChanged, this, &VoiceRecorderPage::onHistoryItemClicked);
+    connect(ui->historyList, &QListWidget::itemSelectionChanged, this, &VoiceRecorderPage::onHistoryItemChanged);
+    connect(ui->searchEdit, &QLineEdit::textChanged, this, &VoiceRecorderPage::onSearchTextChanged);
+
+    connect(m_audioRecorder, &AudioRecorder::recordingStarted, this, &VoiceRecorderPage::onRecordingStarted);
+    connect(m_audioRecorder, &AudioRecorder::recordingStopped, this, &VoiceRecorderPage::onRecordingStopped);
+    connect(m_audioRecorder, &AudioRecorder::levelChanged, this, &VoiceRecorderPage::onLevelChanged);
+    connect(m_audioRecorder, &AudioRecorder::errorOccurred, this, &VoiceRecorderPage::onAudioError);
+
+    connect(m_speechRecognizer, &SpeechRecognizer::recognitionResult, this, &VoiceRecorderPage::onRecognitionResult);
+    connect(m_speechRecognizer, &SpeechRecognizer::hypothesisResult, this, &VoiceRecorderPage::onHypothesisResult);
+    connect(m_speechRecognizer, &SpeechRecognizer::listeningStarted, this, &VoiceRecorderPage::onListeningStarted);
+    connect(m_speechRecognizer, &SpeechRecognizer::listeningStopped, this, &VoiceRecorderPage::onListeningStopped);
+    connect(m_speechRecognizer, &SpeechRecognizer::errorOccurred, this, &VoiceRecorderPage::onSpeechError);
 
     connect(ui->titleEdit, &QLineEdit::textChanged, this, [this]() {
         m_hasUnsavedChanges = true;
@@ -83,11 +114,11 @@ void MainWindow::setupConnections()
 
     QTimer *durationTimer = new QTimer(this);
     durationTimer->setInterval(100);
-    connect(durationTimer, &QTimer::timeout, this, &MainWindow::updateDurationDisplay);
+    connect(durationTimer, &QTimer::timeout, this, &VoiceRecorderPage::updateDurationDisplay);
     durationTimer->start();
 }
 
-void MainWindow::onRecordBtnClicked()
+void VoiceRecorderPage::onRecordBtnClicked()
 {
     if (m_audioRecorder->isRecording()) {
         m_audioRecorder->stopRecording();
@@ -105,7 +136,7 @@ void MainWindow::onRecordBtnClicked()
     }
 }
 
-void MainWindow::onSaveBtnClicked()
+void VoiceRecorderPage::onSaveBtnClicked()
 {
     if (ui->titleEdit->text().trimmed().isEmpty()) {
         QMessageBox::information(this, QStringLiteral("提示"), QStringLiteral("请输入记录标题"));
@@ -120,7 +151,7 @@ void MainWindow::onSaveBtnClicked()
     updateHistoryList();
 }
 
-void MainWindow::onNewBtnClicked()
+void VoiceRecorderPage::onNewBtnClicked()
 {
     if (m_hasUnsavedChanges) {
         if (!confirmDiscard()) {
@@ -136,7 +167,7 @@ void MainWindow::onNewBtnClicked()
     addNewRecord();
 }
 
-void MainWindow::onDeleteBtnClicked()
+void VoiceRecorderPage::onDeleteBtnClicked()
 {
     if (m_currentRecordId.isEmpty()) {
         return;
@@ -171,7 +202,7 @@ void MainWindow::onDeleteBtnClicked()
     setStatusMessage(QStringLiteral("记录已删除"));
 }
 
-void MainWindow::onRecordingStarted()
+void VoiceRecorderPage::onRecordingStarted()
 {
     ui->recordBtn->setText(QStringLiteral("■ 停止录音"));
     ui->recordBtn->setObjectName("recordBtnRecording");
@@ -180,7 +211,7 @@ void MainWindow::onRecordingStarted()
     setStatusMessage(QStringLiteral("正在录音中..."));
 }
 
-void MainWindow::onRecordingStopped()
+void VoiceRecorderPage::onRecordingStopped()
 {
     ui->recordBtn->setText(QStringLiteral("● 开始录音"));
     ui->recordBtn->setObjectName("recordBtn");
@@ -190,18 +221,18 @@ void MainWindow::onRecordingStopped()
     setStatusMessage(QStringLiteral("录音已停止"));
 }
 
-void MainWindow::onLevelChanged(qreal level)
+void VoiceRecorderPage::onLevelChanged(qreal level)
 {
     ui->levelBar->setValue(static_cast<int>(level * 100));
 }
 
-void MainWindow::onAudioError(const QString &error)
+void VoiceRecorderPage::onAudioError(const QString &error)
 {
     QMessageBox::critical(this, QStringLiteral("录音错误"), error);
     setStatusMessage(QStringLiteral("录音错误"));
 }
 
-void MainWindow::onRecognitionResult(const QString &text, bool isFinal)
+void VoiceRecorderPage::onRecognitionResult(const QString &text, bool isFinal)
 {
     Q_UNUSED(isFinal);
     if (text.trimmed().isEmpty()) {
@@ -223,7 +254,7 @@ void MainWindow::onRecognitionResult(const QString &text, bool isFinal)
     m_hasUnsavedChanges = true;
 }
 
-void MainWindow::onHypothesisResult(const QString &text)
+void VoiceRecorderPage::onHypothesisResult(const QString &text)
 {
     QTextCursor cursor = ui->contentEdit->textCursor();
     cursor.movePosition(QTextCursor::End);
@@ -240,20 +271,41 @@ void MainWindow::onHypothesisResult(const QString &text)
     m_hasUnsavedChanges = true;
 }
 
-void MainWindow::onListeningStarted()
+void VoiceRecorderPage::onListeningStarted()
 {
 }
 
-void MainWindow::onListeningStopped()
+void VoiceRecorderPage::onListeningStopped()
 {
 }
 
-void MainWindow::onSpeechError(const QString &error)
+void VoiceRecorderPage::onSpeechError(const QString &error)
 {
     setStatusMessage(QStringLiteral("语音识别: %1").arg(error));
 }
 
-void MainWindow::onHistoryItemClicked(int row)
+void VoiceRecorderPage::onSummaryBtnClicked()
+{
+    QList<RecordItem> records = selectedRecords();
+    if (records.isEmpty()) {
+        QMessageBox::information(this, QStringLiteral("提示"), QStringLiteral("请先在左侧选择要总结的记录"));
+        return;
+    }
+
+    emit requestSwitchToSummary();
+}
+
+void VoiceRecorderPage::onHistoryItemChanged()
+{
+    int count = ui->historyList->selectedItems().size();
+    if (count > 0) {
+        setStatusMessage(QStringLiteral("已选择 %1 条记录").arg(count));
+    } else {
+        setStatusMessage(QStringLiteral("准备就绪"));
+    }
+}
+
+void VoiceRecorderPage::onHistoryItemClicked(int row)
 {
     if (row < 0 || row >= m_records.size()) {
         return;
@@ -280,7 +332,7 @@ void MainWindow::onHistoryItemClicked(int row)
     loadRecordToEditor(record);
 }
 
-void MainWindow::restoreCurrentSelection()
+void VoiceRecorderPage::restoreCurrentSelection()
 {
     for (int i = 0; i < m_records.size(); ++i) {
         if (m_records[i].id == m_currentRecordId) {
@@ -290,7 +342,7 @@ void MainWindow::restoreCurrentSelection()
     }
 }
 
-void MainWindow::updateDurationDisplay()
+void VoiceRecorderPage::updateDurationDisplay()
 {
     if (m_audioRecorder->isRecording()) {
         qint64 ms = m_audioRecorder->recordDuration();
@@ -298,7 +350,7 @@ void MainWindow::updateDurationDisplay()
     }
 }
 
-void MainWindow::loadRecords()
+void VoiceRecorderPage::loadRecords()
 {
     QString dataPath = QDir::homePath() + QStringLiteral("/VoiceRecorder/records.json");
     QFile file(dataPath);
@@ -336,7 +388,7 @@ void MainWindow::loadRecords()
     updateHistoryList();
 }
 
-void MainWindow::saveRecords()
+void VoiceRecorderPage::saveRecords()
 {
     QString dirPath = QDir::homePath() + QStringLiteral("/VoiceRecorder");
     QDir dir;
@@ -363,7 +415,7 @@ void MainWindow::saveRecords()
     }
 }
 
-void MainWindow::addNewRecord()
+void VoiceRecorderPage::addNewRecord()
 {
     RecordItem item;
     item.id = generateId();
@@ -384,7 +436,7 @@ void MainWindow::addNewRecord()
     setStatusMessage(QStringLiteral("新建记录"));
 }
 
-void MainWindow::updateCurrentRecord()
+void VoiceRecorderPage::updateCurrentRecord()
 {
     for (int i = 0; i < m_records.size(); ++i) {
         if (m_records[i].id == m_currentRecordId) {
@@ -400,7 +452,7 @@ void MainWindow::updateCurrentRecord()
     }
 }
 
-void MainWindow::loadRecordToEditor(const RecordItem &record)
+void VoiceRecorderPage::loadRecordToEditor(const RecordItem &record)
 {
     m_currentRecordId = record.id;
     m_hypothesisText.clear();
@@ -418,7 +470,7 @@ void MainWindow::loadRecordToEditor(const RecordItem &record)
     setStatusMessage(QStringLiteral("已加载记录: %1").arg(record.title));
 }
 
-void MainWindow::clearEditor()
+void VoiceRecorderPage::clearEditor()
 {
     ui->titleEdit->clear();
     ui->contentEdit->clear();
@@ -428,7 +480,7 @@ void MainWindow::clearEditor()
     m_hypothesisText.clear();
 }
 
-void MainWindow::updateHistoryList()
+void VoiceRecorderPage::updateHistoryList()
 {
     ui->historyList->clear();
     for (const RecordItem &item : m_records) {
@@ -445,12 +497,12 @@ void MainWindow::updateHistoryList()
     }
 }
 
-QString MainWindow::generateId() const
+QString VoiceRecorderPage::generateId() const
 {
     return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
-QString MainWindow::formatDuration(qint64 ms) const
+QString VoiceRecorderPage::formatDuration(qint64 ms) const
 {
     qint64 totalSeconds = ms / 1000;
     int hours = static_cast<int>(totalSeconds / 3600);
@@ -462,7 +514,7 @@ QString MainWindow::formatDuration(qint64 ms) const
         .arg(seconds, 2, 10, QChar('0'));
 }
 
-bool MainWindow::confirmDiscard()
+bool VoiceRecorderPage::confirmDiscard()
 {
     auto reply = QMessageBox::question(this, QStringLiteral("未保存的更改"),
         QStringLiteral("当前记录有未保存的更改，是否继续？"),
@@ -470,18 +522,87 @@ bool MainWindow::confirmDiscard()
     return reply == QMessageBox::Discard;
 }
 
-void MainWindow::loadStyleSheet()
+void VoiceRecorderPage::onSearchTextChanged(const QString &text)
 {
-    QFile file(":/styles/main.qss");
-    if (file.open(QFile::ReadOnly)) {
-        QString styleSheet = QString::fromUtf8(file.readAll());
-        this->setStyleSheet(styleSheet);
-        file.close();
+    m_searchKeyword = text.trimmed();
+    filterRecords(m_searchKeyword);
+}
+
+void VoiceRecorderPage::filterRecords(const QString &keyword)
+{
+    ui->historyList->clear();
+
+    QList<RecordItem *> filteredRecords;
+    for (const RecordItem &item : m_records) {
+        if (keyword.isEmpty()) {
+            filteredRecords.append(const_cast<RecordItem *>(&item));
+        } else {
+            bool match = false;
+            QString title = item.title;
+            QString content = item.content;
+            QString notes = item.notes;
+
+            if (!title.isEmpty() && title.contains(keyword, Qt::CaseInsensitive)) {
+                match = true;
+            } else if (!content.isEmpty() && content.contains(keyword, Qt::CaseInsensitive)) {
+                match = true;
+            } else if (!notes.isEmpty() && notes.contains(keyword, Qt::CaseInsensitive)) {
+                match = true;
+            }
+
+            if (match) {
+                filteredRecords.append(const_cast<RecordItem *>(&item));
+            }
+        }
+    }
+
+    for (RecordItem *item : filteredRecords) {
+        QString displayTitle = item->title;
+        if (displayTitle.isEmpty()) {
+            displayTitle = item->createTime.toString(QStringLiteral("yyyy-MM-dd hh:mm"));
+        }
+
+        if (!keyword.isEmpty()) {
+            displayTitle = highlightText(displayTitle, keyword);
+        }
+
+        QString displayText = QStringLiteral("%1\n%2").arg(
+            displayTitle,
+            item->createTime.toString(QStringLiteral("yyyy-MM-dd hh:mm")));
+        QListWidgetItem *listItem = new QListWidgetItem(displayText);
+        listItem->setData(Qt::UserRole, item->id);
+
+        if (!keyword.isEmpty()) {
+            listItem->setBackground(QColor(QStringLiteral("#2a2a2a")));
+        }
+
+        ui->historyList->addItem(listItem);
+    }
+
+    if (!keyword.isEmpty()) {
+        setStatusMessage(QStringLiteral("找到 %1 条记录").arg(filteredRecords.size()));
+    } else {
+        setStatusMessage(QStringLiteral("共 %1 条记录").arg(m_records.size()));
     }
 }
 
-void MainWindow::setStatusMessage(const QString &message)
+QString VoiceRecorderPage::highlightText(const QString &text, const QString &keyword)
+{
+    if (keyword.isEmpty()) {
+        return text;
+    }
+
+    QString result = text;
+    int index = result.indexOf(keyword, Qt::CaseInsensitive);
+    while (index != -1) {
+        result.insert(index + keyword.length(), QStringLiteral("</b>"));
+        result.insert(index, QStringLiteral("<b>"));
+        index = result.indexOf(keyword, index + keyword.length() + 7, Qt::CaseInsensitive);
+    }
+    return result;
+}
+
+void VoiceRecorderPage::setStatusMessage(const QString &message)
 {
     ui->statusLabel->setText(message);
-    statusBar()->showMessage(message, 3000);
 }

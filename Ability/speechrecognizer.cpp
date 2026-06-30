@@ -1,6 +1,8 @@
 #include "speechrecognizer.h"
 #include <QDebug>
 
+namespace skill_Ability {
+
 #ifdef Q_OS_WIN
 
 SpeechRecognizer::SpeechRecognizer(QObject *parent)
@@ -15,7 +17,6 @@ SpeechRecognizer::SpeechRecognizer(QObject *parent)
 {
     m_eventTimer->setInterval(100);
     connect(m_eventTimer, &QTimer::timeout, this, &SpeechRecognizer::checkEvents);
-
     m_available = initialize();
 }
 
@@ -283,3 +284,5 @@ void SpeechRecognizer::processEvents()
 }
 
 #endif
+
+} // namespace skill_Ability

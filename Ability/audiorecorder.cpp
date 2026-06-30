@@ -3,6 +3,8 @@
 #include <QMediaDevices>
 #include <QDateTime>
 
+namespace skill_Ability {
+
 AudioRecorder::AudioRecorder(QObject *parent)
     : QObject(parent)
     , m_audioSource(nullptr)
@@ -14,7 +16,6 @@ AudioRecorder::AudioRecorder(QObject *parent)
 {
     m_durationTimer->setInterval(100);
     connect(m_durationTimer, &QTimer::timeout, this, &AudioRecorder::updateDuration);
-
     m_buffer.setBuffer(&m_audioData);
 }
 
@@ -96,7 +97,6 @@ void AudioRecorder::stopRecording()
     }
 
     m_buffer.close();
-
     m_isRecording = false;
 
     emit recordingStopped();
@@ -114,9 +114,7 @@ void AudioRecorder::onReadyRead()
     }
 
     m_buffer.write(data);
-
     calculateLevel(data);
-
     emit audioDataAvailable(data);
 }
 
@@ -151,3 +149,5 @@ void AudioRecorder::calculateLevel(const QByteArray &data)
 
     emit levelChanged(level);
 }
+
+} // namespace skill_Ability

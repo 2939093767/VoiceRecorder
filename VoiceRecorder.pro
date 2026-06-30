@@ -1,4 +1,4 @@
-QT       += core gui multimedia
+QT       += core gui multimedia network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -10,19 +10,17 @@ TEMPLATE = app
 DEFINES += CSM_TARGET_WIN_GL
 QMAKE_PROJECT_DEPTH = 0
 
+include(models/models.pri)
+include(Ability/Ability.pri)
+include(SignalPage/SignalPage.pri)
+include(CustomControl/CustomControl.pri)
+
 SOURCES += \
     main.cpp \
-    mainwindow.cpp \
-    audiorecorder.cpp \
-    speechrecognizer.cpp
+    centralwindow.cpp
 
 HEADERS += \
-    mainwindow.h \
-    audiorecorder.h \
-    speechrecognizer.h
-
-FORMS += \
-    mainwindow.ui
+    centralwindow.h
 
 win32 {
     LIBS += -lsapi -lole32
